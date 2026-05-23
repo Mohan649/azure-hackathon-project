@@ -1,7 +1,5 @@
 name: CI/CD Pipeline
-on:
-  push:
-    branches: [ main ]
+on: [push]
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -10,7 +8,7 @@ jobs:
       - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      
+          
       - name: Build and Push Patient Service
         run: az acr build --image patient-service:latest --registry acrhackathonproject --file "Patient service/Dockerfile" "Patient service"
 
