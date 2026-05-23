@@ -6,14 +6,23 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build Patient Service
-        run: docker build -t patient-service "./Patient service"
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build Appointment Service
-        run: docker build -t appointment-service "./Appointment service"
+      - name: Build and Push Patient Service
+        run: |
+          az acr build --image patient-service:latest --registry acrhackathonproject --file "./Patient service/Dockerfile" "./Patient service"
+
+      - name: Build and Push Appointment Service
+        run: |
+          az acr build --image appointment-service:latest --registry acrhackathonproject --file "./Appointment service/Dockerfile" "./Appointment service"
+
+      # Optional: Add steps here to deploy to Container Apps if needed
