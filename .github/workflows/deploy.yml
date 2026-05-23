@@ -1,107 +1,19 @@
-name: 'Master Hackathon Deployment'
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
-  # JOB 1: Build the Azure Cloud Network using Terraform
-  infrastructure:
-    name: '1. Build Azure Infrastructure'
-    runs-on: ubuntu-latest
-    outputs:
-      acr_name: ${{ steps.tf_outputs.outputs.acr_name }}
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.0
-
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform
-
-    - name: Terraform Apply
-      id: apply
-      run: terraform apply -auto-approve
-      working-directory: ./terraform
-
-  # JOB 2: Build the Python Docker Images and Push them to Azure Container Registry
-  build-and-deploy:
-    name: '2. Build and Deploy Apps'
-    needs: infrastructure
+  build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Build Patient Service
+        run: docker build -t patient-service "./Patient service"
 
-    # Get Azure Container Registry credentials dynamically
-    - name: Get ACR Credentials
-      id: acr_meta
-      run: |
-        ACR_NAME=$(az acr list --query "[0].name" -o tsv)
-        ACR_SERVER=$(az acr list --query "[0].loginServer" -o tsv)
-        ACR_PASS=$(az acr credential show --name $ACR_NAME --query "passwords[0].value" -o tsv)
-        echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
-        echo "server=$ACR_SERVER" >> $GITHUB_OUTPUT
-        echo "password=$ACR_PASS" >> $GITHUB_OUTPUT
-
-    - name: Log into Azure Container Registry
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ steps.acr_meta.outputs.server }}
-        username: ${{ steps.acr_meta.outputs.name }}
-        password: ${{ steps.acr_meta.outputs.password }}
-
-    # Build and Push Patient Service
-    - name: Build & Push Patient Container
-      run: |
-        docker build -t ${{ steps.acr_meta.outputs.server }}/patient-service:latest ./patient-service
-        docker push ${{ steps.acr_meta.outputs.server }}/patient-service:latest
-
-    # Build and Push Appointment Service
-    - name: Build & Push Appointment Container
-      run: |
-        docker build -t ${{ steps.acr_meta.outputs.server }}/appointment-service:latest ./appointment-service
-        docker push ${{ steps.acr_meta.outputs.server }}/appointment-service:latest
-
-    # Deploy containers to Azure Container Apps
-    - name: Deploy to Azure Container Apps
-      run: |
-        az extension add --name containerapp --upgrade
-        
-        # Deploy Patient Service
-        az containerapp create \
-          --name patient-service \
-          --resource-group hackathon-healthcare-rg \
-          --environment hackathon-aca-env \
-          --image ${{ steps.acr_meta.outputs.server }}/patient-service:latest \
-          --target-port 8000 \
-          --ingress external
-
-        # Deploy Appointment Service
-        az containerapp create \
-          --name appointment-service \
-          --resource-group hackathon-healthcare-rg \
-          --environment hackathon-aca-env \
-          --image ${{ steps.acr_meta.outputs.server }}/appointment-service:latest \
-          --target-port 8000 \
-          --ingress external
+      - name: Build Appointment Service
+        run: docker build -t appointment-service "./Appointment service"
