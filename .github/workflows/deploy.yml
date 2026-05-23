@@ -1,11 +1,11 @@
 - name: Build and Push Patient Service
         run: |
-          az acr build --image patient-service:latest --registry acrhackathonproject --file "'Patient service/Dockerfile'" "'Patient service'"
+          az acr build --image patient service:latest --registry acrhackathonproject --file "'Patient service/Dockerfile'" "'Patient service'"
 
       - name: Build and Push Appointment Service
         run: |
-          az acr build --image appointment-service:latest --registry acrhackathonproject --file "'Appointment service/Dockerfile'" "'Appointment service'"Patient service/Dockerfile" .
+          az acr build --image appointment service:latest --registry acrhackathonproject --file "'Appointment service/Dockerfile'" "'Appointment service'"Patient service/Dockerfile" .
 
       - name: Build and Push Appointment Service
         run: |
-          az acr build --image appointment-service:latest --registry acrhackathonproject --file "Appointment service/Dockerfile" .
+          az acr build --image appointment service:latest --registry acrhackathonproject --file "Appointment service/Dockerfile" .
