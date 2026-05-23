@@ -1,0 +1,12 @@
+services:
+  appointment-service:
+    build: 
+      context: ./Appointment service
+    ports:
+      - "8000:8000"
+      
+  patient-service:
+    build: 
+      context: ./Patient service
+    ports:
+      - "8001:8001"
