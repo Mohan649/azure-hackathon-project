@@ -84,7 +84,7 @@ def view_appointments():
             "| Date:", appt["date"],
             "| Time:", appt["time"]
         )
-Step 3: Update Your Main Menu Loop
+Update Your Main Menu Loop
 Finally, replace your while True: loop at the very bottom of the script to reflect the new divided sections:
 
 Python
