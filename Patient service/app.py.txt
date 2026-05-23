@@ -1,0 +1,11 @@
+from fastapi import FastAPI
+
+app = FastAPI(title="Patient Service")
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Patient Microservice"}
+
+@app.get("/patients")
+def get_patients():
+    return [{"id": 1, "name": "John Doe"}, {"id": 2, "name": "Jane Smith"}]

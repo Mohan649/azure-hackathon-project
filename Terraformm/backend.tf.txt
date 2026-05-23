@@ -1,0 +1,9 @@
+Terraform
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "hackathon-tf-state-rg"
+    storage_account_name = "youruniquestorageacct"
+    container_name       = "tfstate"
+    key                  = "terraform.tfstate" # Separate keys per env (dev.tfstate, etc.)
+  }
+}
